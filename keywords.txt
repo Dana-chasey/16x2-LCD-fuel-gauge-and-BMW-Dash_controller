@@ -1,5 +1,0 @@
-Gauge	KEYWORD1
-displayGauge	KEYWORD2
-keypad	KEYWORD2
-setEnergy	KEYWORD2
-setFuel	KEYWORD2	
