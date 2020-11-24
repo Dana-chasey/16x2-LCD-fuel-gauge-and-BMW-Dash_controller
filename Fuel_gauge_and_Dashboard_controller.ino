@@ -19,6 +19,7 @@ int lastMsg = 3;
 int energy;
 int negEnergy;
 int fuel;
+
 void setup() {
   gauge.setup(lcd);
   Serial.begin(9600);
@@ -55,15 +56,18 @@ void loop() {
     long compare;
     int cRPM;           
     
-    E36TachTone.play(RPMt);
+    E36TachTone.play(RPMt);  
+                                //Sequental if checks to ensure each statistic is updated at appropriate frequency
+                                //A switch was use in the place of this in the past however a compiler level bug meant
+                                //that the first message in the switch would be read with far more frequency then all other messages
 if(lastMsg == 3){
   if (mcp2515_check_message()){
     if (mcp2515_get_message(&message)){ 
          //Serial.println(message.id,HEX);
-         if(message.id == 0x298){
+         if(message.id == 0x298){             //If a MOTOR message is recieved
         
         
-           cRPM = message.data[6] * 256;
+           cRPM = message.data[6] * 256;    //RPM calculation
            cRPM += message.data[7];
            cRPM -= 10000;
            //gauge.displayRPM(compare);
@@ -77,7 +81,7 @@ if(lastMsg == 3){
            int RPM = cRPM;  //input RPM read from CAN here IF car is in ready state else stop RPM gauge
            
   
-           RPMt = RPM/30.5;
+           RPMt = RPM/30.5;      //Sets the tachometer RPM to calculated value (this update will show up in then next loop)
   
            if (RPMt < 31){ //stops rpm gauge signal going below 31 Hz for idle(causes issues)
               RPMt = 31;     
@@ -88,7 +92,7 @@ if(lastMsg == 3){
            Serial.print(" ");
            //delay(200);
 
-           int temp = message.data[3]-45;
+           int temp = message.data[3]-45;        //Temperature calculations
               temp = (80 - temp);
               Serial.print(temp);
               Serial.print(" ");
@@ -104,7 +108,7 @@ if(lastMsg == 3){
               
               
               //#####TEMP#####  
-            analogWrite(6, temp); //sets temp to middle pos
+            analogWrite(6, temp); 
             
             // 6=HOTFlashing 10=HighesTemp 15=HOTLightOn, 50=MID, 100=COLD
             // Use 10 - 100 for temp range, and 6 as a set value for flashing HOT
@@ -124,7 +128,7 @@ if(lastMsg == 3){
 
 if(lastMsg == 2){
    if (mcp2515_get_message(&message)){ 
-   if(message.id == 0x374){
+   if(message.id == 0x374){                     //If fuel message id recieved 
       fuel = (message.data[1])/2.56;
       Serial.print("Fuel percentage: ");
       Serial.print(fuel);
@@ -139,7 +143,7 @@ if(lastMsg == 2){
 
 if(lastMsg == 1){
    if (mcp2515_get_message(&message)){ 
-   if(message.id == 0x373){
+   if(message.id == 0x373){                     //if energy consumption message is recieved
       compare = message.data[2] * 256;
       compare += (message.data[3] - 32700);
       compare *= -1;
@@ -151,7 +155,7 @@ if(lastMsg == 1){
               
       //Serial.println(highest);
       //delay(200);
-      //-16225
+      //-16225 max value found while testing the car and sniffing can
       rpmPlays = 0;
       kwPlays += 1;
       if(kwPlays > 0){
